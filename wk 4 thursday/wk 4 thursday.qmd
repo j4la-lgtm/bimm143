@@ -1,0 +1,16 @@
+---
+title: "wk 4 thursday"
+author: Julie La
+format: html
+---
+
+## Background
+
+The goal of this mini-projectis for you to explore a complete analysis using the machine learning techniques covered in class.
+
+Today we will analyze a biopsy data-set from fine needle aspiration (FNA) of breast mass.
+
+
+## Data Import
+
+The data is made available as a CSV filr for download. We can read this with the `read.csv()` function

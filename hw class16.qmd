@@ -1,0 +1,46 @@
+---
+title: "Class 16: Unix Basics"
+author: "Julie La"
+format: pdf
+---
+
+>Q1. List the UNIX bash shell commands to: open a secure shell on a remote machine:
+
+ssh [user@host.address]
+ 
+example: $ ssh -i "bimm143_j4la.pem" ubuntu@ec2-34-209-220-111.us-west-2.compute.amazonaws.com
+
+>Make a new folder in your home area called "test":
+
+mkdir ~/test
+
+>Download this file "https://files.rcsb.org/download/5P21.pdb.gz":
+
+curl -O https://files.rcsb.org/download/5P21.pdb.gz
+
+(prior to curl, I put cd ~/Downloads so it would download in my Downloads directory)
+
+>Unzip/decompress it the file:
+
+gunzip 5P21.pdb.gz
+gunzip *.pdb.gz
+
+>Print to screen the first 6 lines:
+
+head -6 5P21.pdb
+
+>Print to lines beginning with ATOM to a new file called "coords.pdb":
+
+grep "^ATOM" > coords.pdb
+
+>Q2. List the UNIX commands to copy securely the file "myaln.fa" in your current
+working directory to your home area on the remote machine "biglabcluster.ucsd.edu":
+
+
+scp ~/myaln.fa julil@biglabcluster.ucsd.edu:~/.
+
+>Q3. The alignment file “myaln.fa” is not in your current working directory but it is in your
+“Downloads” directory. Write the R code to import this alignment to the named object “aln”
+using a function from the bio3d package. 
+
+aln <- read.fasta("~/Downloads/myaln.fa")

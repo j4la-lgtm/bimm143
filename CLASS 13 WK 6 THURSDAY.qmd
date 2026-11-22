@@ -1,0 +1,300 @@
+---
+title: "Class 13: RNA Seq Analysis with DESeq2"
+format: html
+---
+
+## Background
+
+Today we will do our first RNASeq analysis of a dataset from a study of a common synthetic glucocorticoid, called dexamethasone, on airway smooth muscle cells.
+
+## Data Import
+
+There are two input CSV files to read, the first is so-called "counts" data the 2nd is metadata about the design of the experiment (i.e. the columns in"counts"):
+
+```{r}
+counts <- read.csv("airway_scaledcounts.csv", row.names=1)
+metadata <- read.csv("airway_metadata.csv")
+```
+
+> Q1. How many genes are in this dataset?
+
+38694 genes.
+
+```{r}
+nrow(counts)
+```
+
+> Q2. How many ‘control’ cell lines do we have?
+
+We have 4 control cell lines.
+
+```{r}
+sum(metadata$dex == "control")
+```
+
+```{r}
+table(metadata$dex)
+```
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.counts <- counts[ ,control$id]
+control.mean <- rowSums( control.counts )/4 
+head(control.mean)
+```
+
+```{r}
+library(dplyr)
+control <- metadata %>% filter(dex=="control")
+control.counts <- counts %>% select(control$id) 
+control.mean <- rowSums(control.counts)/4
+head(control.mean)
+```
+
+```{r}
+library(dplyr)
+control <- metadata %>% filter(dex=="control")
+control.counts <- counts %>% select(control$id) 
+control.mean <- rowMeans(control.counts)
+head(control.mean)
+```
+>Q3. How would you make the above code in either approach more robust? Is there a function that could help here? 
+
+You can make the above code in either approach more robust by using rowSums or rowMeans, where instead of doing control.mean <- rowSums(control.counts)/4, you can do control.mean <- rowMeans(control.counts).
+
+>Q4. Follow the same procedure for the treated samples (i.e. calculate the mean per gene across drug treated samples and assign to a labeled vector called treated.mean)
+
+```{r}
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowMeans( counts[ ,treated$id] )
+head(treated.mean)
+```
+
+
+## Analysis
+
+```{r}
+head(counts)
+```
+
+### Our Plan
+
+We want to control our "control" vs "treated" (i.e. no drug vs drug experiments). We can calculate the mean count value for every gene (rows) in all 4 "control" experiments and compare it to the mean "count" value in all "treated" experiments (i.e. columns).
+
+1.  Extract all "control" columns
+2.  Calculate the mean for each row (gene) of these columns
+3.  Do the same for "treated" to get a `treated.mean`
+
+```{r}
+metadata$dex == "control"
+```
+
+```{r}
+control.inds <- metadata$dex == "control"
+```
+
+```{r}
+control.counts <- counts[,control.inds]
+dim(control.counts)
+```
+
+```{r}
+head(control.counts)
+```
+
+```{r}
+library(dplyr)
+
+control.mean <- rowMeans(control.counts)
+```
+
+```{r}
+treated.mean <-rowMeans(counts[,metadata$dex=="treated"])
+head(treated.mean)
+```
+
+For easy book-keeping lets store these two mean values together in one data.frame called `mycounts`
+
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+```
+
+> Q5 (a). Create a scatter plot showing the mean of the treated samples against the mean of the control samples. Your plot should look something like the following.
+
+```{r}
+plot(meancounts)
+```
+
+```{r}
+plot(meancounts[,1],meancounts[,2], xlab="Control", ylab="Treated")
+
+```
+
+>Q5 (b).You could also use the ggplot2 package to make this figure producing the plot below. What geom_?() function would you use for this plot? 
+
+You would use geom_point.
+
+
+```{r}
+library(ggplot2)
+
+ggplot(meancounts) + aes(control.mean, treated.mean) + geom_point()
+```
+
+> Q. Re-draw or re-plot these on a log-log axis scale.
+
+>Q6. Try plotting both axes on a log scale. What is the argument to plot() that allows you to do this?
+
+The argument that allows you to do this is 'log' or specifically log="xy".
+
+```{r}
+plot(meancounts, log="xy")
+```
+
+We can compare the mean values of treated and control in terms of "log fold change values". Typically we use log2 units of "treated/control":
+
+```{r}
+# No change = 0
+log2(20/20)
+```
+
+```{r}
+# Up regulated = 1
+log2(40/20)
+```
+
+```{r}
+# Down regulation, below the sloped line
+log2(20/40)
+```
+
+Let's add our Log2 Fold Change `log2fc` values to our `meancounts` data frame.
+
+```{r}
+meancounts$log2fc <-log2(meancounts$treated.mean/meancounts$control.mean)
+```
+
+```{r}
+head(meancounts)
+```
+
+A common threshold for calling a gene "up regulated" is a log2fc value of +2. For "down regulated" it is -2.
+
+First filter out zero count genes - as we can't say anything about them if we don't have any count data for them.
+
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+>Q7. What is the purpose of the arr.ind argument in the which() function call above? Why would we then take the first column of the output and need to call the unique() function?
+ 
+ 
+The arr.ind=TRUE argument is a logical that would help give the specific rows and columns that are 'true' values, indicating the genes and samples that have 0 counts. We would then take the first column of the output and call the unique() function as it removes duplicate rows (the genes) so they won't be counted twice.
+
+>Q8. Using the up.ind vector above can you determine how many up regulated genes we have at the greater than 2 fc level?
+
+There are 250 up regulated genes at the greater than 2 fc level.
+
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+sum(up.ind)
+```
+
+>Q9. Using the down.ind vector above can you determine how many down regulated genes we have at the greater than 2 fc level?
+
+There are 367 down regulated genes that are at the greater than 2 fc level.
+
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+sum(down.ind)
+```
+
+> Q. How many genes are "up regulated" at +2 or above?
+
+314 genes up regulated at either +2 or above.
+
+```{r}
+sum(mycounts$log2fc >= 2)
+```
+
+>Q10. Do you trust these results? Why or why not?
+
+No we do not trust these results as there are 30,000 genes, and also as we're only relying on fold change and we haven't done any statistical tests like P-value testing to see if these differences are significant or not.
+
+##DESeq2 Analysis
+
+Let's do this properly and put a P-value on these differences to keep our inner stats nerd happy!
+
+```{r, nessage=FALSE}
+library(DESeq2)
+```
+
+To use DESeq2 we need to have our input data (our `counts` and `metadata`) stored together in a specific format that DESeq uses.
+
+```{r}
+## Setup for DESeq
+dds <- DESeqDataSetFromMatrix(countData=counts,
+                              colData=metadata,
+                              design= ~dex)
+```
+
+Now we can run the main analysis with the `DESeq()` function:
+
+```{r}
+dds<- DESeq(dds)
+```
+
+We can get our main results table from this `dds` object with the `results()` function:
+
+```{r}
+res <- results(dds)
+head(res)
+```
+
+## Summary Figure
+
+A common plot in this type of work combines log2fc values and adjusted P-values together into one figure to highlight genes to focus on that both change allot in expression values and that change is significant. Some folks call this a volcano plot
+
+```{r}
+ggplot(res) +
+  aes(log2FoldChange, padj) + geom_point()
+```
+
+```{r}
+ggplot(res) +
+  aes(log2FoldChange, -log(padj)) + geom_point() + 
+  geom_vline(xintercept =-2, col="red") +
+  geom_vline(xintercept =2, col="red") +
+  geom_hline(yintercept =-log(0.05), col="red")
+```
+
+## Save our results so far
+
+```{r}
+write.csv(res, file="my_results.csv")
+```
+
+
+```{r}
+ggplot(res) +
+  aes(log2FoldChange, -log(padj), 
+    color = padj < 0.05 & abs(log2FoldChange) > 2) +
+  geom_point() +
+  geom_vline(xintercept =-2, col="red") +
+  geom_vline(xintercept =2, col="red") +
+  geom_hline(yintercept =-log(0.05), col="red")+
+  scale_color_manual(
+    values = c( "TRUE" = "orange"),
+    
+  )
+```

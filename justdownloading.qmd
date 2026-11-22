@@ -1,0 +1,11 @@
+---
+title: "CLASS 13 WK 6 THURS"
+format: html
+---
+
+
+```{r}
+library(DESeq2)
+
+```
+

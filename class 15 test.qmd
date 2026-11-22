@@ -1,0 +1,34 @@
+---
+title: "Class 15"
+author: "Julie La"
+format: html
+---
+```{r}
+"mm-second.x.zebrafish.tsv"
+```
+
+```{r}
+res <- read.delim("mm-second.x.zebrafish.tsv", header=FALSE)
+
+# Set the colnames
+colnames(res) <- c("qseqid", "sseqid", "pident",
+                   "length", "mismatch", "gapopen",
+                   "qstart", "qend", "sstart",
+                   "send", "evalue", "bitscore")
+head(res)
+```
+
+```{r}
+nrow(res)
+```
+```{r}
+library(ggplot2)
+hist(res$bitscore)
+```
+
+
+```{r}
+library(bio3d)
+aln <- read.fasta("~/Downloads/myaln.fa")
+```
+

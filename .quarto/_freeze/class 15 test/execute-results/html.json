@@ -1,0 +1,17 @@
+{
+  "hash": "e0208678026d12b6d7ac438010aa2952",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Class 15\"\nauthor: \"Julie La\"\nformat: html\n---\n\n::: {.cell}\n\n```{.r .cell-code}\n\"mm-second.x.zebrafish.tsv\"\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"mm-second.x.zebrafish.tsv\"\n```\n\n\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nres <- read.delim(\"mm-second.x.zebrafish.tsv\", header=FALSE)\n\n# Set the colnames\ncolnames(res) <- c(\"qseqid\", \"sseqid\", \"pident\",\n                   \"length\", \"mismatch\", \"gapopen\",\n                   \"qstart\", \"qend\", \"sstart\",\n                   \"send\", \"evalue\", \"bitscore\")\nhead(res)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n       qseqid         sseqid pident length mismatch gapopen qstart qend sstart\n1 NP_034603.2 XP_002663941.1 44.444     90       46       1    644  733    295\n2 NP_034603.2 XP_021335885.1 41.667     96       46       2    644  733    295\n3 NP_034603.2 XP_087079376.1 33.333     90       33       2    644  733    295\n4 NP_036084.2 XP_073785644.1 24.265    136       97       1     87  216     18\n5 NP_036084.2 NP_001032795.1 23.392    171      124       2     52  216     53\n6 NP_036084.2 NP_001032763.1 26.573    143       98       3     87  224     87\n  send   evalue bitscore\n1  380 4.71e-20     94.4\n2  386 3.44e-18     88.6\n3  357 5.03e-11     66.2\n4  153 1.72e-07     50.4\n5  222 1.74e-07     51.6\n6  227 1.83e-06     48.5\n```\n\n\n:::\n:::\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nnrow(res)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] 52447\n```\n\n\n:::\n:::\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(ggplot2)\nhist(res$bitscore)\n```\n\n::: {.cell-output-display}\n![](class-15-test_files/figure-html/unnamed-chunk-4-1.png){width=672}\n:::\n:::\n\n\n\n",
+    "supporting": [
+      "class-15-test_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

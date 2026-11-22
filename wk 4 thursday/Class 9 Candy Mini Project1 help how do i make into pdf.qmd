@@ -1,0 +1,374 @@
+---
+title: "Class 9: Candy Mini Project"
+author: "Julie La"
+format: pdf
+editor: visual
+always_allow_html: yes
+---
+
+## Importing Candy Data
+
+```{r}
+url <- "https://raw.githubusercontent.com/fivethirtyeight/data/master/candy-power-ranking/candy-data.csv"
+candy <- read.csv(url)
+
+head(candy)
+```
+
+## What is in the dataset?
+
+> Q1. How many different candy types are in this dataset?
+
+There are 85 types of candy.
+
+```{r}
+nrow(candy)
+```
+
+> Q2. How many fruity candy types are in the dataset?
+
+There are 38 fruity candy types.
+
+```{r}
+sum(candy$fruity == 1)
+```
+
+## What is your favorite candy?
+
+```{r}
+candy <- read.csv(url)
+rownames(candy) <- candy$competitorname
+
+candy["Twix", ]$winpercent
+```
+
+```{r}
+library(dplyr)
+
+candy |> 
+  filter(row.names(candy)=="Twix") |> 
+  select(winpercent)
+```
+
+> Q3. What is your favorite candy (other than Twix) in the dataset and what is it’s winpercent value?
+
+My favorite candy in the dataset is M&M's. It's winpercent value is 66.57458.
+
+```{r}
+library(dplyr)
+
+candy |> 
+  filter(row.names(candy)=="M&M's") |> 
+  select(winpercent)
+```
+
+> Q4. What is the winpercent value for “Kit Kat”?
+
+The winpercent value for "Kit Kat" is 76.7686.
+
+```{r}
+library(dplyr)
+
+candy |> 
+  filter(row.names(candy)=="Kit Kat") |> 
+  select(winpercent)
+```
+
+> Q5. What is the winpercent value for “Tootsie Roll Snack Bars”?
+
+The winpercent value for "Tootsie Roll Snack Bars" is 49.6535.
+
+```{r}
+library(dplyr)
+
+candy |> 
+  filter(row.names(candy)=="Tootsie Roll Snack Bars") |> 
+  select(winpercent)
+```
+
+```{r}
+library("skimr")
+skim(candy)
+```
+
+> Q6. Is there any variable/column that looks to be on a different scale to the majority of the other columns in the dataset?
+
+Yes the winpercent seems to be a different scale compared to the majority of the other columns in the dataset.
+
+> Q7. What do you think a zero and one represent for the candy\$chocolate column?
+
+One probably means "true" that it does contain chocolate, and 0 probably means "false", that it doesn't contain chocolate.
+
+## Exploratory analysis
+
+> Q8. Plot a histogram of winpercent values using both base R and ggplot2.
+
+```{r}
+candy <- read.csv(url)
+
+hist(candy$winpercent, 
+     xlab = "Winpercent values", 
+     col = "orange", 
+     )
+```
+
+```{r}
+candy <- read.csv(url)
+library(ggplot2)
+ggplot(candy) +
+aes(x = winpercent) +
+geom_histogram(bins=30,fill="orange") 
+```
+
+> Q9. Is the distribution of winpercent values symmetrical?
+
+No, it is not symmetrical and this can be seen especially when observing the histogram from base R. It seems to have a kind of right-skewed distribution.
+
+> Q10. Is the center of the distribution above or below 50%?
+
+The center of the distribution is below 50%.
+
+> Q11. On average is chocolate candy higher or lower ranked than fruit candy?
+
+The average for chocolate candy (60.92153) is higher ranked than fruit candy (44.11974).
+
+```{r}
+mean(candy$winpercent[as.logical(candy$chocolate)])
+```
+
+```{r}
+mean(candy$winpercent[as.logical(candy$fruity)])
+```
+
+```{r}
+median(candy$winpercent)
+```
+
+```{r}
+mean(candy$winpercent)
+```
+
+> Q12. Is this difference statistically significant?
+
+Yes, this difference is statisically significant and we can tell from the p-value, 2.871e-08, which is less than 0.05.
+
+```{r}
+chocolate <- (candy$winpercent[as.logical(candy$chocolate)])
+fruity <- (candy$winpercent[as.logical(candy$fruity)])
+
+t.test(chocolate, fruity)
+
+```
+
+## Overall Candy Rankings
+
+> Q13. What are the five least liked candy types in this set?
+
+The five least liked candy types in this set are Nik L Nip, Boston Baked Beans, Chiclets, Super Bubble, and Jawbusters.
+
+```{r}
+head(candy[order(candy$winpercent),], n=5)
+```
+
+```{r}
+candy |> arrange(winpercent) |> head(5)
+```
+
+> Q14. What are the top 5 all time favorite candy types out of this set?
+
+The top 5 all time favorite candy types out of this set are Snickers, Kit Kat, Twix, Reese's Minatures, and Reese's Peanut Butter cup.
+
+```{r}
+candy |> arrange(winpercent) |> tail(5)
+```
+
+> Q15. Make a first barplot of candy ranking based on winpercent values.
+
+```{r}
+library(ggplot2)
+
+ggplot(candy) + 
+  aes(x = winpercent, y = competitorname, rownames(candy)) +
+  geom_col() 
+```
+
+> Q16. This is quite ugly, use the reorder() function to get the bars sorted by winpercent?
+
+```{r}
+library(ggplot2)
+
+ggplot(candy) + 
+  aes(x = winpercent, y = reorder(competitorname, winpercent)) +
+  geom_col()
+```
+
+```{r}
+my_cols=rep("black", nrow(candy))
+my_cols[as.logical(candy$chocolate)] = "chocolate"
+my_cols[as.logical(candy$bar)] = "brown"
+my_cols[as.logical(candy$fruity)] = "red"
+ggplot(candy) + 
+  aes(x = winpercent, y = reorder(competitorname, winpercent))+
+  geom_col(fill=my_cols) +
+  ylab("")
+
+```
+
+```{r}
+my_cols=rep("black", nrow(candy))
+my_cols[as.logical(candy$chocolate)] = "chocolate"
+my_cols[as.logical(candy$bar)] = "brown"
+my_cols[as.logical(candy$fruity)] = "red"
+ggplot(candy) + 
+  aes(x = winpercent, y = reorder(competitorname, winpercent))+
+  geom_col(col=my_cols) +
+  ylab("")
+
+```
+
+>Q17. What is the worst ranked chocolate candy?
+
+Based on the barplot using fill=my_cols, we see that the worst ranked chocolate candy is Sixlets.
+
+>Q18. What is the best ranked fruity candy?
+
+The best ranked fruity candy is Starburst.
+
+## Taking a look at pricepercent
+
+```{r}
+
+rownames(candy) <- candy[, 1]
+ord <- order(candy$pricepercent, decreasing = TRUE)
+head( candy[ord,c(11,12)], n=5 )
+
+```
+
+```{r}
+library(ggrepel)
+
+# How about a plot of win vs price
+ggplot(candy) +
+  aes(x=winpercent, y=pricepercent, label=rownames(candy)) +
+  geom_point(col=my_cols) + 
+  geom_text_repel(col=my_cols, size=3.3, max.overlaps = 5)
+```
+
+>Q19. Which candy type is the highest ranked in terms of winpercent for the least money - i.e. offers the most bang for your buck?
+
+The candy type that is the highest ranked in terms of winpercent for the least money would be Reese's Miniatures.
+
+
+>Q20. What are the top 5 most expensive candy types in the dataset and of these which is the least popular?
+
+The top 5 most expensive candy types are Nik L Nip, Nestle Smarties, Ring Pop, Hershey's Krackel, and Hershey's Milk Chocolate.
+
+```{r}
+ord <- order(candy$pricepercent, decreasing = TRUE)
+head( candy[ord,c(11,12)], n=5 )
+```
+
+```{r}
+library(dplyr)
+candy |>
+  arrange(-pricepercent) |> 
+  select(pricepercent, winpercent) |> 
+  head(n=5)
+```
+
+```{r}
+ggplot(candy) +
+  aes(pricepercent, reorder(rownames(candy), pricepercent)) +
+  geom_segment(aes(yend = reorder(rownames(candy), pricepercent), 
+                   xend = 0), col="gray40") +
+    geom_point()
+```
+
+## Exploring the correlation structure
+
+```{r}
+library(corrplot)
+
+cij <- cor(candy[, -1]) 
+
+corrplot(cij)
+```
+
+>Q22. Examining this plot what two variables are anti-correlated (i.e. have minus values)?
+
+The two variables that are anti-correlated are chocolate and fruity.
+
+>Q23. Use your corrplot result to make a prediction: which variables do you expect will have the largest contributions (i.e. loadings) to PC1 (i.e., drive the most separation between candies along the first principal component)?
+
+The variables that would have the largest contributions to PC1 might be the chocolate and fruity candies. Other variables might be chocolate bars and the pluribus candies.
+
+## Principal Component Analysis
+
+```{r}
+pca <- prcomp(candy[, -1], scale=TRUE)
+summary(pca)
+```
+
+```{r}
+plot(pca$x[,1:2])
+
+```
+
+```{r}
+plot(pca$x[,1:2], col=my_cols, pch=16)
+
+```
+
+```{r}
+# Make a new data-frame with our PCA results and candy data
+my_data <- cbind(candy, pca$x[,1:3])
+```
+
+```{r}
+p <- ggplot(my_data) + 
+        aes(x=PC1, y=PC2, 
+            size=winpercent/100,  
+            text=rownames(my_data),
+            label=rownames(my_data)) +
+        geom_point(col=my_cols)
+
+p
+```
+
+```{r}
+library(ggrepel)
+
+p + geom_text_repel(size=3.3, col=my_cols, max.overlaps = 7)  + 
+  theme(legend.position = "none") +
+  labs(title="Halloween Candy PCA Space",
+       subtitle="Colored by type: chocolate bar (dark brown), 
+       chocolate other (light brown), 
+       fruity (red), other (black)",
+       caption="Data from 538")
+```
+
+```{r}
+library(plotly)
+ggplotly(p)
+
+```
+
+
+>Q24. Complete the code to generate the loadings plot above. What original variables are picked up strongly by PC1 in the positive direction? Do these make sense to you? Where did you see this relationship highlighted previously?
+
+Fruity, pluribus, and hard are picked up strongly by PC1 in the positive direction. These do make sense to me, especially when we think about candies like Starburst and Skittles that fulfill this criteria. We saw this relationship highlighted previously by the corrplot, where we see this correlation with fruity and pluribus or fruity and hard. However, as answered in question 22, we also saw this anti-correlation between fruity and chocolate which is also clearly highlighted in this ggplot with PC1, with chocolate having a strong negative direction in contrast to fruity, with a strong positive direction.
+
+```{r}
+ggplot(pca$rotation) +
+aes(x = PC1, y = reorder(rownames(pca$rotation), PC1)) +
+geom_col() +
+xlab("PC1 Loading Score") +
+ylab("") 
+
+```
+
+## Summary
+
+>Q25. Based on your exploratory analysis, correlation findings, and PCA results, what combination of characteristics appears to make a “winning” candy? How do these different analyses (visualization, correlation, PCA) support or complement each other in reaching this conclusion?
+
+A combination of characteristics that appear to make a "winning" candy would be a chocolate that may be a chocolate bar, nougat, caramel, peanutyalmondy, and/or a crispedricewafer. These different analyses support or complement each other in reaching this conclusion as we can use how the variables are grouped together in PC1, like how all these characteristics associated with chocolate are within this range of a negative PC1 loading score. We can also observe the winpercent for the candies like from question 14 and also the graph comparing winpercent vs pricepercent or the graph from question 16 that looked at winpercent on different candies. Here, we had seen the top 5 favorite candies were Snickers, Kit Kat, Twix, Reese's Minatures, and Reese's Peanut Butter cup, all which are chocolate and share these combination of characteristics. With the corrplot, we again see correlation between chocolate and these range of characteristics by observing a positive value. Chocolate is shown having a positive win percent, whereas fruity has a negative value for win percent. Our conclusion is further supported when comparing characteristics specifically grouped with being a fruity candy versus a chocolate candy and the differences in their winpercents.
